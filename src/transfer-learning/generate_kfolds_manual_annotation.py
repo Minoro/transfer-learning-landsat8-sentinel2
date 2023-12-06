@@ -47,7 +47,7 @@ def write_csv_with_number_of_fire_pixel_of_each_patch():
     """
 
     data = []
-    images = glob(os.path.join(IMAGES_DIR, '*.tif'))
+    images = sorted(glob(os.path.join(IMAGES_DIR, '*.tif')))
 
     for image in tqdm(images):
         image_name = os.path.basename(image)
@@ -83,7 +83,7 @@ def make_dataframe_with_samples(df, mask_level, num_train_images=1):
     O conjunto de teste utiliza todos os patches da imagem.
     Para ordenar o número de patches é preciso informar o nível da máscara (num_fire_pixels_mask1 ou num_fire_pixels_mask2).
     """ 
-
+    df = df.sort_values('mask1')
     df['patch_sufix'] = df['mask1'].apply(lambda x : str(x).split('_')[-1])
     # Agrupa para verificar quantos patches de fogo cada imagem tem
     df_tmp = df[ df[mask_level] != 0 ].groupby('sentinel_image').count().reset_index()
