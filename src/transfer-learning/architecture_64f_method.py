@@ -21,8 +21,13 @@ from core.unet import get_unet, freeze_unet_layers
 from core.data import data_augmentation, open_image_and_mask
 from core.metrics import *
 
+# Threshold method to fine-tune the network
+# Accept: Liu, Kato-Nakamura, Murphy, Voting and Intersection
+METHOD = 'Liu'
+
 MASK_LEVEL = 'mask1'
 NFILTERS = 64
+
 
 # Name to identify the saved model, it will be the "prefix" of the final name
 MODEL_NAME = f'5fold_8020_{MASK_LEVEL}_unet{NFILTERS}f'
@@ -63,8 +68,7 @@ EARLY_STOP_RESTORE_BEST = True
 
 
 IMAGES_DIR = '../../resources/sentinel/Sentinel2/manual_annotated/256/imgs'
-MASKS_DIR = f'../../resources/sentinel/Sentinel2/manual_annotated/256/{MASK_LEVEL}'
-
+MASKS_DIR = f'../../resources/sentinel/Sentinel2/manual_annotated/256/methods/{METHOD}'
 
 # Transfer-Learning strategy. Accept the following values
 # "freeze_all" - Frozen weights (no learning); the BN layer is free to learn
@@ -89,7 +93,6 @@ WEIGHTS_DIR = os.path.join('../../resources/transfer_learning/weights', output_f
 
 # Folds that will be used by the script
 FOLDS = [1, 2, 3, 4, 5]
-
 
 
 def get_dataset_from_paths(image_paths, masks_paths, normalization_layer=None, use_data_augmentation=False, shuffle=False, repeat=True):
@@ -141,8 +144,11 @@ if __name__ == '__main__':
     os.makedirs(WEIGHTS_DIR, exist_ok=True)
 
     df = pd.read_csv(FOLDS_FILE)
+
+
     df['images_paths'] = df['image'].apply(lambda x : os.path.join(IMAGES_DIR, x))
     df['masks_paths'] = df[f'{MASK_LEVEL}'].apply(lambda x : os.path.join(MASKS_DIR, x))
+
 
 
     for k in FOLDS:
@@ -161,6 +167,7 @@ if __name__ == '__main__':
         test_images_paths = df_test['images_paths'].values
         test_masks_paths = df_test['masks_paths'].values
 
+
         # Normalize the input data
         normalization_layer = None
         if NORMALIZATION_MODE == 'fixed' or NORMALIZATION_MODE == 'no-bn':
@@ -170,30 +177,28 @@ if __name__ == '__main__':
             raise 'Invalid Normalization Method'
 
         for pre_treined_mask in PRE_TRAINED_MASKS:
-            # Define the pre-trained model to be loaded
+            
             models_path = os.path.join(PRE_TRAINED_WEIGHTS_DIR, pre_treined_mask.lower(), f'unet_{NFILTERS}f_2conv_765', f'model_unet_{pre_treined_mask}_765_final_weights.h5')
-            # Create an output directory to save the results and final model
-            output_dir = os.path.join(OUTPUT_DIR, str(k), pre_treined_mask)
+            output_dir = os.path.join(OUTPUT_DIR, METHOD, str(k), pre_treined_mask)
             os.makedirs(output_dir, exist_ok=True)
 
             for config in CONFIGS:
                 if os.path.exists(os.path.join(output_dir, f"{config}_results.json")):
-                    print(f'Ignoring {config} - Fold: {k} - Pretrained: {pre_treined_mask}')
+                    print(f'Ignoring {METHOD} - {config} - Fold: {k} - Pretrained: {pre_treined_mask}')
                     continue
                 
                 tf.keras.backend.clear_session()
 
-                # Create the U-net with the same format as used to train with Landsat-8 images
                 unet = get_unet(n_channels=3, n_filters=NFILTERS)
 
                 if config != 'random':
-                    # Load the pre-trained weights and freeze the layers
+                    # Carrega os pesos e congela as camadas
                     unet.load_weights(models_path)
                     unet = freeze_unet_layers(unet, config)
 
                 model = unet
                 if NORMALIZATION_MODE == 'fixed':
-                    # Add a BN layer after the initial input to learn the new scale
+                    # Adiciona uma camada BN logo no inicio da rede para normalizar a entrada
                     model = tf.keras.Sequential(
                         [
                             tf.keras.Input(shape=IMAGE_SHAPE), 
@@ -246,7 +251,7 @@ if __name__ == '__main__':
                 del val_dataset
 
                 # Evalute the model with the test set and save the results
-                print(f'Evaluating model: {config} - Fold: {k} - Pretrained: {pre_treined_mask}')
+                print(f'Evaluating Model: {METHOD} - {config} - Fold: {k} - Pre-trained: {pre_treined_mask}')
                 results = evaluate_dataset(model, test_dataset)
                 print(results)
                 out_file = open(os.path.join(output_dir, f"{config}_results.json"), "w")

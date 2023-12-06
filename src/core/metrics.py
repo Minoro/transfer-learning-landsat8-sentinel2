@@ -189,7 +189,7 @@ def evaluate_dataset(model, dataset):
             annotations.append(mask)
         
     annotations = np.array(annotations)
-    print('Número de anotaçẽos: ', len(annotations))
+    print('Número de anotações: ', len(annotations))
     print('Número de predições', len(predictions))
 
     return evaluate(annotations, predictions)
