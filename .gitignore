@@ -161,3 +161,4 @@ cython_debug/
 
 resources/landsat/**
 resources/sentinel/Sentinel2/**
+resources/sentinel/images/**
