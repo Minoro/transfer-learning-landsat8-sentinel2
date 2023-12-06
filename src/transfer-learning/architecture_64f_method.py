@@ -80,7 +80,7 @@ CONFIGS = [
 ]
 
 # Define the final name of the model
-output_folder_name = f'{MODEL_NAME}_{LOSS_FUNCTION}_'
+output_folder_name = f'{MODEL_NAME}_{LOSS_FUNCTION}'
 if USE_DATA_AUGMENTATION:
     output_folder_name += '_augmentation'
 else:
