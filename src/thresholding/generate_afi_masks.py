@@ -15,7 +15,7 @@ from glob import glob
 
 # import cv2
 
-IMAGES_STACK_DIR = '../../resources/sentinel/Sentinel2/manual_annotated/scenes/stack'
+IMAGES_STACK_DIR = '../../resources/sentinel/Sentinel2/manual_annotated/scenes/stack_20m'
 METADATA_DIR = '../../resources/sentinel/Sentinel2/manual_annotated/metadata'
 
 OUTPUT_DIR = '../../resources/sentinel/images/output_txt'
