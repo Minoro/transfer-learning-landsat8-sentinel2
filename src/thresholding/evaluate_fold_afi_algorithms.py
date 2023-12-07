@@ -14,15 +14,15 @@ RANDOM_STATE = 42
 
 # Extension of the annotations and the predictions
 # It can be txt or tif
-PREDICTION_FORMAT = 'txt'
+PREDICTION_FORMAT = 'tif'
 
 PREDICTIONS_DIR = '../../resources/sentinel/images/output_txt'
-ANNOTATIONS_DIR = f'../../resources/sentinel/Sentinel2/manual_annotated/scenes/annotations/mask1_array'
+ANNOTATIONS_DIR = f'../../resources/sentinel/Sentinel2/manual_annotated/scenes/mask1'
 
 DATAFRAME_FOLDS_PATH = f'../../resources/sentinel/manual_annotation_5folds_patches_8020_mask1.csv'
 
 
-RESULTS_OUTPUT_DIR = f'../../resources/sentinel/Sentinel2/manual_annotated/evaluate_algorithms_results/5folds_mask1_array'
+RESULTS_OUTPUT_DIR = f'../../resources/sentinel/Sentinel2/manual_annotated/evaluate_algorithms_results/5folds_mask1'
 
 
 if __name__ == '__main__':
@@ -34,6 +34,9 @@ if __name__ == '__main__':
     
     test_tiles = df[ (df['set'] == 'test') ]['sentinel_image'].unique()
     
+
+    # By default the test set is equals for all folds. 
+    # Therefore the result will be the same, since the thresholding methods has no "randomness".
     for fold in folds:
         print('Evaluating K:', fold)
                 
