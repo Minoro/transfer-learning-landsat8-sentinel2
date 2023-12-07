@@ -28,9 +28,9 @@ METRIC = 'F-score'
 FOLDS_FILE = f'../../resources/sentinel/manual_annotation_5folds_patches_8020_{MASK_LEVEL}.csv'
 
 # The name of the models to be generated the predictions
-MODELS = ['5fold_8020_mask1_unet64f_bce_seamline_0.0_augmentation']
+MODELS = ['5fold_8020_mask1_unet64f_bce_augmentation']
 
-MODELS_PATH = '../../resources/transfer_learning/weights'
+MODELS_PATH = '../../resources/transfer_learning/output/weights'
 RESULTS_MODELS_PATH = '../../resources/transfer_learning/output/results'
 OUTPUT_DIR = '../../resources/transfer_learning/output/images/predictions_best_network'
 
@@ -128,67 +128,63 @@ if __name__ == '__main__':
         
         pretrained_models = df_results.pretrained_model.unique()
         
+        for config in CONFIGS:
+            filter_config = (df_results['config'] == config)
+            best_score = df_results[ filter_config ][METRIC].max()
 
-        for pretrained_model in pretrained_models:
+            filter_metric = (df_results[METRIC] == best_score)
             
-            for config in CONFIGS:
-                filter_pretrained = (df_results['pretrained_model'] == pretrained_model)
-                filter_config = (df_results['config'] == config)
-                best_score = df_results[ filter_config & filter_pretrained ][METRIC].max()
+            best_model = df_results[ (filter_config & filter_metric) ]
+            if len(best_model) == 0:
+                continue
+            
+            pretrained_model = best_model['pretrained_model'].values[0]
+            fold = best_model['fold'].values[0]
+            df_train = df[ (df['fold'] == fold) & (df['set'] == 'train')]
+            df_test = df[ (df['fold'] == fold) & (df['set'] == 'test')]
 
-                filter_metric = (df_results[METRIC] == best_score)
-                
-                best_model = df_results[ (filter_config & filter_pretrained & filter_metric) ]
-                if len(best_model) == 0:
-                    continue
-                
-                fold = best_model['fold'].values[0]
-                df_train = df[ (df['fold'] == fold) & (df['set'] == 'train')]
-                # df_validation = df[ (df['fold'] == fold) & (df['set'] == 'validation')]
-                df_test = df[ (df['fold'] == fold) & (df['set'] == 'test')]
+            print(f'Prediction with model: {model} - config: {config} - Fold: {fold} - Score: {best_score} - Pretrained: {pretrained_model}')
+            
+            # Load the train patches (validation included)
+            images = df_train.sentinel_image.unique()
+            train_images_paths = []
+            train_masks_paths = []
+            for image in images:
+                train_images_paths += glob(os.path.join(IMAGES_DIR, f'{image}*.tif'))
+                train_masks_paths += glob(os.path.join(MASKS_DIR, f'{image}*.tif'))
 
-                print(f'Prediction with model: {model} - config: {config} - Fold: {fold} - Score: {best_score} - Pretrained: {pretrained_model}')
-                
-                # Carrega todos os patches das imagens de treino
-                images = df_train.sentinel_image.unique()
-                train_images_paths = []
-                train_masks_paths = []
-                for image in images:
-                    train_images_paths += glob(os.path.join(IMAGES_DIR, f'{image}*.tif'))
-                    train_masks_paths += glob(os.path.join(MASKS_DIR, f'{image}*.tif'))
-
-                train_images_paths = sorted(train_images_paths)
-                train_masks_paths = sorted(train_masks_paths)
+            train_images_paths = sorted(train_images_paths)
+            train_masks_paths = sorted(train_masks_paths)
 
 
-                test_images_paths = []
-                test_masks_paths = []
-                images = df_test.sentinel_image.unique()
-                for image in images:
-                    test_images_paths += glob(os.path.join(IMAGES_DIR, f'{image}*.tif'))
-                    test_masks_paths += glob(os.path.join(MASKS_DIR, f'{image}*.tif'))
+            test_images_paths = []
+            test_masks_paths = []
+            images = df_test.sentinel_image.unique()
+            for image in images:
+                test_images_paths += glob(os.path.join(IMAGES_DIR, f'{image}*.tif'))
+                test_masks_paths += glob(os.path.join(MASKS_DIR, f'{image}*.tif'))
 
-                test_images_paths = sorted(test_images_paths)
-                test_masks_paths = sorted(test_masks_paths)
+            test_images_paths = sorted(test_images_paths)
+            test_masks_paths = sorted(test_masks_paths)
 
-                # clear the memory
-                tf.keras.backend.clear_session()
+            # clear the memory
+            tf.keras.backend.clear_session()
 
-                unet = tf.keras.models.load_model(
-                    os.path.join(MODELS_PATH, model, f'{pretrained_model}_fold_{fold}_nsamples_{config}_{LOSS_FUNCTION}'),
-                    custom_objects={'dice_coef': dice_coef}
-                )
-                unet.summary()
+            unet = tf.keras.models.load_model(
+                os.path.join(MODELS_PATH, model, f'{pretrained_model}_fold_{fold}_nsamples_{config}_{LOSS_FUNCTION}'),
+                custom_objects={'dice_coef': dice_coef}
+            )
+            unet.summary()
 
-                output_dir = os.path.join(OUTPUT_DIR, model, pretrained_model, f'fold_{fold}', 'train', config)
-                os.makedirs(output_dir, exist_ok=True)
-                print('Predicting traning samples')
-                predict_images_and_save_to_dir(unet, train_images_paths, train_masks_paths, output_dir)
+            output_dir = os.path.join(OUTPUT_DIR, model, pretrained_model, f'fold_{fold}', 'train', config)
+            os.makedirs(output_dir, exist_ok=True)
+            print('Predicting traning samples')
+            predict_images_and_save_to_dir(unet, train_images_paths, train_masks_paths, output_dir)
 
 
-                output_dir = os.path.join(OUTPUT_DIR, model, pretrained_model, f'fold_{fold}', 'test', config)
-                os.makedirs(output_dir, exist_ok=True)
-                print('Predicting test samples')
-                predict_images_and_save_to_dir(unet, test_images_paths, test_masks_paths, output_dir)
+            output_dir = os.path.join(OUTPUT_DIR, model, pretrained_model, f'fold_{fold}', 'test', config)
+            os.makedirs(output_dir, exist_ok=True)
+            print('Predicting test samples')
+            predict_images_and_save_to_dir(unet, test_images_paths, test_masks_paths, output_dir)
 
-                print(f'Prediction done for model {model} - Config: {config} - Fold: {fold} - Score: {best_score} - Pretrained: {pretrained_model}')
+            print(f'Prediction done for model {model} - Config: {config} - Fold: {fold} - Score: {best_score} - Pretrained: {pretrained_model}')
