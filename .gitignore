@@ -163,4 +163,6 @@ resources/landsat/**
 resources/sentinel/Sentinel2/**
 resources/sentinel/images/**
 resources/transfer_learning/output/images/**
+resources/transfer_learning/output/weights/**
+resources/transfer_learning/weights/**
 
