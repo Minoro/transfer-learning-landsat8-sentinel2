@@ -4,6 +4,7 @@ import tensorflow.keras.backend as K
 from sklearn.metrics import jaccard_score
 from sklearn.metrics import f1_score
 from tqdm import tqdm
+from image.sentinel import make_nodata_mask
 
 def dice_coef(y_true, y_pred, smooth=1):
     y_true = K.clip(y_true, -1e12, 1e12)
@@ -184,7 +185,7 @@ def evaluate_dataset(model, dataset):
     print('Número de predições: ', len(predictions))
 
     annotations = []
-    for img, annotation in dataset:
+    for i, (img, annotation) in enumerate(dataset):
         for mask in annotation:
             annotations.append(mask)
         
