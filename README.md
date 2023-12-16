@@ -122,6 +122,11 @@ If you trained the models by yourself the models will be available at same direc
 
 You may notice that the Landsat-8 weights are available as a `h5` file while the fine-tuned models are available as Keras models. This is because the fine-tuned model have an extra layer at the beginning of the model. Using keras you can load the model with `tf.keras.models.load_model`, an example of how to load the models is available in the `src/transfer-learning/best_models_inference.py` script.
 
+We provided the `src/utils/unzip_finetuned_models.py` script to unzip the downloaded models and put it inside the directories. Inside the `src/utils` directory you can run:
+
+```shell
+python unzip_finetuned_models.py
+```
 
 # Generating active fire masks for Sentinel-2
 
