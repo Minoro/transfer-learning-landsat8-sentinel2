@@ -51,6 +51,13 @@ For Landsat-8, the network was trained with 256x256-pixels patches, using the ba
 | Landsat-8 | Intersection             | `resources/landsat/weights/intersection/unet_64f_2conv_765/model_unet_Intersection_765_final_weights.h5`   |
 | Landsat-8 | Voting                   | `resources/landsat/weights/voting/unet_64f_2conv_765/model_unet_Voting_765_final_weights.h5`               |
 
+You can download the Landsat-8 pre-trained models as a zip file and put it in the `resources` folder of this repository, then you can use the script `src/utils/unzip_landsat_weights.py` to extract the weights and put they in the correct folder. Inside the `src/utils` folder you can run: 
+
+```shell
+python unzip_landsat_weights.py
+```
+
+
 # Fine-tune with Sentinel-2 images
 
 This section will guide you in how to fine-tune the trained models to Sentinel-2, if you don't want to fine-tune by yourself you can download the final models as described in the section [Downloading the Sentinel-2 fine-tuned models](#downloading-the-sentinel-2-fine-tuned-models). 
