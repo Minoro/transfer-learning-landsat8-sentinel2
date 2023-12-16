@@ -66,7 +66,11 @@ python unzip_landsat_weights.py
 
 # Fine-tune with Sentinel-2 images
 
-This section will guide you in how to fine-tune the trained models to Sentinel-2, if you don't want to fine-tune by yourself you can download the final models as described in the section [Downloading the Sentinel-2 fine-tuned models](#downloading-the-sentinel-2-fine-tuned-models). 
+This section will guide you in how to fine-tune the trained models to Sentinel-2, if you don't want to fine-tune by yourself you can download the final models as described in the section [Downloading the Sentinel-2 fine-tuned models](#downloading-the-sentinel-2-fine-tuned-models). The image below show an example of the segmentation produced by the models after the fine-tunning.
+
+
+<img src="segmentation_results.png" width="600">
+
 
 After training the base networks with Landsat-8 images, we performed transfer-learning using similar bands of Sentinel-2. In our experiments we reserved the five images with the most fire patches to form five distinct folds to perform the fine-tuning to Sentinel-2 (the other images was used to evalute the model), each of the five images was used separately as a "fold", repeting the expiriments five times (one for each train image).
 
