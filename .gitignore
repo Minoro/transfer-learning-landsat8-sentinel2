@@ -160,6 +160,8 @@ cython_debug/
 #.idea/
 
 resources/landsat/**
+resources/landsat/images/patches/**
+resources/landast/images/patches/*.tif
 resources/sentinel/Sentinel2/**
 resources/sentinel/images/**
 resources/transfer_learning/output/images/**
