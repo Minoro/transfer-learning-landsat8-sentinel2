@@ -159,11 +159,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-resources/landsat/**
+resources/sentinel/images/**
 resources/landsat/images/patches/**
 resources/landast/images/patches/*.tif
+resources/landsat/output/**/*.hdf5
 resources/sentinel/Sentinel2/**
-resources/sentinel/images/**
 resources/transfer_learning/output/images/**
 resources/transfer_learning/output/weights/**
 resources/transfer_learning/weights/**
