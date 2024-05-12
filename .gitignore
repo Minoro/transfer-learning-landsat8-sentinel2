@@ -161,10 +161,16 @@ cython_debug/
 
 resources/sentinel/images/**
 resources/landsat/images/patches/**
-resources/landast/images/patches/*.tif
+resources/landast/images/**/*.tif
 resources/landsat/output/**/*.hdf5
+resources/landsat/output/**/*.h5
 resources/sentinel/Sentinel2/**
 resources/transfer_learning/output/images/**
 resources/transfer_learning/output/weights/**
 resources/transfer_learning/weights/**
 
+resources/landsat/images/manual_annotations/landsat_patches/*.tif
+resources/landsat/masks/**/*.tif
+resources/landsat/masks/voting/*.tif
+resources/landsat/masks/intersection/*.tif
+resources/landsat/masks/patches/*.tif
