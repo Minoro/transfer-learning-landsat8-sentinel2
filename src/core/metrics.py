@@ -115,15 +115,6 @@ def evaluate(annotations, predictions):
         y_pred_all_v1.append(y_pred)
         y_true_all_v1.append(y_true)
 
-        # jaccard_score_v1 = jaccard_score(y_true, y_pred, average='macro', zero_division=0)
-        # jaccard_score_sum_v1 = jaccard_score_sum_v1 + jaccard_score_v1
-
-        # f1_score_v1 = f1_score(y_true, y_pred, zero_division=0)
-        # f1_score_sum_v1 = f1_score_sum_v1 + f1_score_v1
-
-        # pixel_accuracy_v1 = pixel_accuracy(y_true, y_pred)
-        # pixel_accuracy_sum_v1 = pixel_accuracy_sum_v1 + pixel_accuracy_v1
-
         nsum_v1 = nsum_v1 + 1
 
         count_fire_pixel_mask += np.sum(y_true)
@@ -143,14 +134,7 @@ def evaluate(annotations, predictions):
     print('y_true_all_v1 shape: ', y_true_all_v1.shape)
     print('y_pred_all_v1 shape: ', y_pred_all_v1.shape)
 
-    # print ('-------------------- ALL IMAGE-BY-IMAGE (BINARY) - V1')
-    # print ('mIoU (Jaccard-Average/Fire & Non-Fire):', float(jaccard_score_sum_v1)/nsum_v1)
-    # print ('F1-score (Dice/Fire & Non-Fire):', float(f1_score_sum_v1)/nsum_v1)
-    # print ('Pixel-accuracy (IoU fire):', float(pixel_accuracy_sum_v1)/nsum_v1)
-
-    # print ('-------------------- ALL (BINARY) - V1')
-    # print ('mIoU (Jaccard3):', jaccard3 (y_true_all_v1, y_pred_all_v1))
-
+ 
     tn, fp, fn, tp = statistics3(y_true_all_v1, y_pred_all_v1)
     print ('Statistics3 (tn, fp, fn, tp):', tn, fp, fn, tp)
 
