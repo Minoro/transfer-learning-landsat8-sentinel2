@@ -643,6 +643,23 @@ def freeze_segformer_layers(model, config):
     
 
 
+def freeze_backbone_layers(backbone, mode):
+    freeze_fn = None
+    backbone_name = backbone.name.lower() 
+    if backbone_name == 'unet' or backbone_name == 'u-net':
+        freeze_fn = freeze_unet_layers
+    elif backbone_name == 'deeplabv3+' or backbone_name == 'deeplabv3':
+        freeze_fn = None
+    elif backbone_name.startswith('segformer'):
+        freeze_fn = freeze_segformer_layers
+
+    if freeze_fn is None:
+        raise ValueError(f'It was not possible to define how to freeze layers for {backbone_name}!')
+
+
+    return freeze_fn(backbone, mode) 
+
+
 def get_model(name, input_shape, num_classes=1):
     name = name.lower()
     if name == 'segformerb0':
@@ -682,3 +699,22 @@ def get_models_available():
         'deeplabv3+',
         'unet'
     ]
+
+
+def add_bn_at_start(backbone):
+    shape = backbone.inputs[0].shape
+    return tf.keras.Sequential([
+        tf.keras.Input(shape=(shape[1], shape[2], shape[3])),
+        BatchNormalization(),
+        backbone,
+    ])
+
+
+def get_normalization_layer(normalization_mode, quantification_values):
+    normalization_layer = None
+    if normalization_mode == 'bn' or normalization_mode == 'no-bn':
+        normalization_layer = tf.keras.layers.Rescaling(1./quantification_values)
+    elif normalization_mode is not None:
+        raise 'Invalid Normalization Method'
+
+    return normalization_layer

@@ -174,8 +174,18 @@ def evaluate_dataset(model, dataset):
             annotations.append(mask)
         
     annotations = np.array(annotations)
+
     print('Número de anotações: ', len(annotations))
     print('Número de predições', len(predictions))
 
     return evaluate(annotations, predictions)
 
+
+
+def get_model_metrics():
+    metrics = {
+        'P': tf.keras.metrics.Precision(),
+        'R': tf.keras.metrics.Recall(),
+    }
+
+    return metrics

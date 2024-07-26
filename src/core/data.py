@@ -5,13 +5,18 @@ import pandas as pd
 import os
 
 # Max. pixel value, used to normalize the Landsat-8 images
-MAX_LANDSAT_PIXEL_VALUE = 65535 
-
 # Default non-fire mask for patches marked as "seamline" 
-SEAMLINE_MASK = tf.zeros((256,256, 1)).numpy()
+SEAMLINE_MASK = np.zeros((256,256, 1))
 RANDOM_SEED = 42
 
-g = tf.random.Generator.from_seed(RANDOM_SEED)
+MAP_LANDSAT_TO_SENTINEL_BANDS_IN_STACK = {
+    # Landsat: Sentinel
+    7: 6,
+    6: 5,
+    5: 4,
+}
+
+g = None
 
 class LandsatDatasetBuilder():
 
@@ -51,7 +56,7 @@ class LandsatDatasetBuilder():
         return self
     
     def use_bands(self, bands):
-        self.bands = bands
+        self.bands = [int(b) for b in bands]
         return self
 
     def prepare_dataset(self, set_name):
@@ -59,8 +64,8 @@ class LandsatDatasetBuilder():
         x = pd.read_csv(os.path.join(self.dataframe_path, self.mask_name, f'images_{set_name}.csv'))
         y = pd.read_csv(os.path.join(self.dataframe_path, self.mask_name, f'masks_{set_name}.csv'))
         images_paths = [ os.path.join(self.images_path, image) for image in x['images'] ]
-        masks_paths = [ os.path.join(self.masks_path, mask) for mask in y['masks'] ]
-
+        masks_paths = [ '' if isinstance(mask, float) else os.path.join(self.masks_path, mask) for mask in y['masks']]
+        
         self.num_images = len(images_paths)
         self.num_masks = len(masks_paths)
 
@@ -94,8 +99,14 @@ class LandsatDatasetBuilder():
         return self.num_images
 
 
-def get_landsat_images_dataset_and_num_images_from_config_and_args(config, args, set_name : str):
+def get_landsat_images_dataset_and_num_images_from_config_and_args(config, args, set_name : str, use_manual_annotation : bool = False):
     dataset_builder = get_dataset_builder_from_config_and_args(config, args)
+
+    if use_manual_annotation:
+        dataset_builder = dataset_builder.use_dataframe_in_path(config.LANDSAT_MANUAL_ANNOTATIONS_DATAFRAME_PATH) \
+                                    .use_images_path(config.LANDSAT_MANUAL_ANNOTATIONS_IMAGES_PATH) \
+                                    .use_masks_path(config.LANDSAT_MANUAL_ANNOTATIONS_MASK_PATH) \
+                                    .use_mask('Annotation')
 
     if config.QUANTIFICATION_VALUE is not None:
         dataset_builder = dataset_builder.use_normalization_layer(tf.keras.layers.Rescaling(1./config.QUANTIFICATION_VALUE))
@@ -107,12 +118,17 @@ def get_landsat_images_dataset_and_num_images_from_config_and_args(config, args,
 
 
 def get_dataset_builder_from_config_and_args(config, args):
+
+    bands = config.BANDS
+    if args.bands is not None:
+        bands = args.bands
+
     builder = LandsatDatasetBuilder() \
                 .use_dataframe_in_path(config.IMAGES_DATAFRAMES_PATH) \
                 .use_images_path(config.IMAGES_PATH) \
                 .use_masks_path(config.MASKS_PATH) \
                 .use_mask(args.mask) \
-                .use_bands(config.BANDS) \
+                .use_bands(bands) \
                 .use_batch_size(args.batch_size)
     
     return builder
@@ -152,7 +168,7 @@ def get_landsat_dataset_from_paths(image_paths, masks_paths, batch_size=8, norma
     return prepare_dataset(dataset, batch_size, normalization_layer, use_data_augmentation, repeat)
 
 
-def get_sentinel_dataset_from_paths(image_paths, masks_paths, batch_size=8, normalization_layer=None, use_data_augmentation=False, shuffle=False, repeat=True):
+def get_sentinel_dataset_from_paths(image_paths, masks_paths, batch_size=8, normalization_layer=None, use_data_augmentation=False, shuffle=False, repeat=True, landsat_bands=(7, 6, 5)):
     """ Returns a tf.data.Dataset to feed the networks.
     It can be used to iterate over the dataset, it generates the batch of images and masks.
     Returns a tensor with the shape [[BATCH_SIZE, 256, 256, 3], [BATCH_SIZE, 256, 256, 1]].
@@ -164,8 +180,11 @@ def get_sentinel_dataset_from_paths(image_paths, masks_paths, batch_size=8, norm
         # Shuffle the paths instead of the "open" images to save memory
         dataset = dataset.shuffle(buffer_size=len(image_paths), seed=RANDOM_SEED) 
 
+
+    bands = tuple([ MAP_LANDSAT_TO_SENTINEL_BANDS_IN_STACK[int(b)] for b in landsat_bands])
+    
     # Give the paths of the images and masks to the function "open_image_and_mask" which return the tensor representing the images and masks
-    dataset = dataset.map(lambda x:  tf.py_function(open_sentinel_image_and_mask, [x], [tf.float32, tf.float32]), num_parallel_calls=tf.data.AUTOTUNE)
+    dataset = dataset.map(lambda x:  tf.py_function(factory_function_open_sentinel_image_and_mask(bands), [x], [tf.float32, tf.float32]), num_parallel_calls=tf.data.AUTOTUNE)
     
     return prepare_dataset(dataset, batch_size=batch_size, normalization_layer=normalization_layer, use_data_augmentation=use_data_augmentation, repeat=repeat)
     
@@ -189,13 +208,28 @@ def prepare_dataset(dataset, batch_size=8, normalization_layer=None, use_data_au
     dataset = dataset.batch(batch_size) 
     
     if use_data_augmentation:
-        dataset = dataset.map(data_augmentation)
+        dataset = dataset.map(data_augmentation(RANDOM_SEED))
     
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
     return dataset
 
 
+def factory_function_open_sentinel_image_and_mask(landsat_bands):
+
+    def open_image_and_mask(paths):
+        image_path = paths[0].numpy().decode()
+        mask_path = paths[1].numpy().decode()
+        
+        with rasterio.open(image_path) as src:
+            img = src.read(landsat_bands).transpose((1,2,0))
+
+            with rasterio.open(mask_path) as src:
+                mask = src.read().transpose((1,2,0))
+            
+            return img, mask
+        
+    return open_image_and_mask
 
 def open_sentinel_image_and_mask(paths):
     """Abre uma imagem e a máscara a partir do tensor contendo os caminhos
@@ -226,24 +260,28 @@ def open_sentinel_image_and_mask(paths):
 
 
 
-def data_augmentation(input_image, input_mask):
+def data_augmentation(random_seed=None):
+    # Define o gerador a partir da semente para resultados mais consistentes
+    g = tf.random.Generator.from_seed(random_seed)
+    
+    def augmentation(input_image, input_mask):
+        rand = g.uniform([1])
+        # tf.print('Rand 1:', rand)
+        if rand > 0.5:
+            # tf.print('Flip horizontal')
+            input_image = tf.image.flip_left_right(input_image)
+            input_mask = tf.image.flip_left_right(input_mask)
+            
+        rand = g.uniform([1])
+        # tf.print('Rand 2:', rand)
+        if rand > 0.5:
+            # tf.print('Flip vertical')
+            input_image = tf.image.flip_up_down(input_image)
+            input_mask = tf.image.flip_up_down(input_mask)
 
-    rand = g.uniform([1])
-    # tf.print('Rand 1:', rand)
-    if rand > 0.5:
-        # tf.print('Flip horizontal')
-        input_image = tf.image.flip_left_right(input_image)
-        input_mask = tf.image.flip_left_right(input_mask)
-        
-    rand = g.uniform([1])
-    # tf.print('Rand 2:', rand)
-    if rand > 0.5:
-        # tf.print('Flip vertical')
-        input_image = tf.image.flip_up_down(input_image)
-        input_mask = tf.image.flip_up_down(input_mask)
+        return input_image, input_mask
 
-    return input_image, input_mask
-
+    return augmentation
 
 
 def get_img_765bands(path):
@@ -265,6 +303,9 @@ def get_img_bands(path, bands):
 
 def get_mask_arr(path):
     # img = rasterio.open(path).read()
+    if path == '':
+        return np.zeros((256,256,1), dtype=np.float32)
+
     img = rasterio.open(path).read().transpose((1, 2, 0))
     seg = np.float32(img)
     return seg
