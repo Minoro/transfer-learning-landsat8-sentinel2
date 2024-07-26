@@ -39,9 +39,14 @@ python unzip_sentinel_dataset.py
 
 # Training the base network
 
-We trained five different U-net using Landsat-8 images and masks. To train these networks we used the data available in the repository built by [Pereira et al.](https://github.com/pereira-gha/activefire/). Although the authors provided the weights of the trained models, we chose to use different bands, so it was necessary to train the models with the appropriate bands. We trained the models using the bands SWIR-2 (band-7), SWIR-1 (band-6) and NIR (band-5) from Landsat-8 and the masks created by the [Kumar and Roy (2018)](), [Murphy et al. (2016)](),  [Schroeder et al. (2016)](), and their combination by intersection and majority-voting.
+We trained a U-net with Landsat-8 images using different images, masks and band combinations. To train these networks we used the data available in the repository built by [Pereira et al.](https://github.com/pereira-gha/activefire/). Although the authors provided the weights of the trained models, we chose to use different bands, so it was necessary to train the models with the appropriate bands. We trained the models using the bands SWIR-2 (band-7), SWIR-1 (band-6) and NIR (band-5) from Landsat-8 in different combinations, using the masks created by the [Kumar and Roy (2018)](), [Murphy et al. (2016)](),  [Schroeder et al. (2016)](), and their combination by intersection and majority-voting.
 
-If you want to train the base model by yourself you can follow the instructions available in the [Pereira et al.](https://github.com/pereira-gha/activefire/) repository, but it is necessary to adjust the bands used to train the models. In this repository we provide the trained weights from the networks trained with the mentioned dataset, you can follow the instructions in the [Downloading the pre-trained weights for Landsat-8](#downloading-the-pre-trained-weights-for-landsat-8). 
+
+If you want to train the base model by yourself you can follow the instructions available in the [Pereira et al.](https://github.com/pereira-gha/activefire/) repository, but it is necessary to adjust the bands used to train the models. Alternatively, there are a script in this repository in `src/landsat/train_base_model.py` to help you train the base model. You can chose the mask (Kumar-Roy, Murphy, Schroeder, Voting or Intersection) to train the network using the argument `--mask`, you can also adjust the batch-size (`--batch-size`), the learning rate (`--lr`), the number of epochs (`epochs`), the early stoping patcience (`--early-stoping-patience`) and also the band combination to train (`--bands`). If you don't use any argument it will use the configuration define in the file `scr/landsat/landsat_config.py`. When using this training script the final weights will be saved in the folder `resources/landsat/output/`. You can change it in the configuration file.
+
+
+In this repository we also provide the trained weights from the networks trained with the mentioned dataset, you can follow the instructions in the [Downloading the pre-trained weights for Landsat-8](#downloading-the-pre-trained-weights-for-landsat-8). 
+
 
 ## Downloading the pre-trained weights for Landsat-8
 
@@ -66,14 +71,18 @@ python unzip_landsat_weights.py
 
 # Fine-tune with Sentinel-2 images
 
-This section will guide you in how to fine-tune the trained models to Sentinel-2, if you don't want to fine-tune by yourself you can download the final models as described in the section [Downloading the Sentinel-2 fine-tuned models](#downloading-the-sentinel-2-fine-tuned-models). The image below show an example of the segmentation produced by the models after the fine-tunning.
+This section will guide you in how to fine-tune the trained models to Sentinel-2, if you don't want to fine-tune by yourself you can download the final models as described in the section [Downloading the Sentinel-2 fine-tuned models](#downloading-the-sentinel-2-fine-tuned-models). 
 
-
-<img src="segmentation_results.png" width="600">
-
+<!-- The image below show an example of the segmentation produced by the models after the fine-tunning. -->
+<!-- <img src="segmentation_results.png" width="600"> -->
 
 After training the base networks with Landsat-8 images, we performed transfer-learning using similar bands of Sentinel-2. In our experiments we reserved the five images with the most fire patches to form five distinct folds to perform the fine-tuning to Sentinel-2 (the other images was used to evalute the model), each of the five images was used separately as a "fold", repeting the expiriments five times (one for each train image).
 
+
+You can follow the [Defining folds](#defining-folds) section if you want to split the Sentinel-2 dataset to fine-tune the model. If you want the check the steps for fine-tuning the model you can check the [Performing the fine-tuning](#performing-the-fine-tuning) section.
+
+
+## Defining folds
 
 The first step to fine-tuning is to define which images are used for training, validation and testing. In this repository there is the script `src/transfer-learning/generate_kfolds_manual_annotation.py` that can be used to perform this division. The first time you run this script it will process all annotations computing the number of fire pixels and the maximum value of the bands used and saved to the file defined in `CSV_WITH_NUMBER_OF_FIRE_PIXELS_OF_EACH_PATCH` constant, if the file already exists it will not be re-computed. You can change the images directory in the `IMAGES_DIR` constant and the annotations directory in the `MASKS_DIR` constant. If you don't want to use five images/folds you can change the value in the `NUM_TOP_FIRE_IMAGES_TO_TRAIN` constant. The proportion of fire-patches reserved to validation can be set in the `VALIDATION_FRACTION` constant, the default value is 20%. The constant named `NON_FIRE_PROPORTION` defined the proportion of patches without fire to be used to fine-tuning the networks, the default value is 1, this means that for each fire-patch one patch without fire will be used. The constants `OUTPUT_PATH` and `OUTPUT_FILE` define the directory and the file of the output. Once you have your script configured you can run:
 
@@ -83,30 +92,29 @@ python generate_kfolds_manual_annotation.py
 
 The file generated by this script contains the patches to be used for each fold of the experiments, dividing the images into their respective set (train/validation/test), this file will be used to fine-tuning the base model to Sentinel-2 images.
 
-It is important to keep in mind that, despite the bands from Lansat-8 and Sentinel-2 shares similarities they are not strictly equivalent, also, the spatial resolution is different for each satellite (30m to Lansat-8 and 20m to Sentinel-2), therefore the network needs to learn how to understand this changes. In order adapt the network we added an batch normalization layer immediately after the input for the Sentinel-2 images.
+## Performing the fine-tuning
 
-The script `scr/transfer-learning/architecture_64f.py` can be used to fine-tune the base networks, it needs the folds files (generated before) to be set in the constant `FOLDS_FILE`. It will fine-tune each base model, if you want to use a specific base model you can change the list in the `PRE_TRAINED_MASKS` constant, the names defined in this list refers to the (authors) name of the method used generated masks used to train the base model. You need to set the constant `PRE_TRAINED_WEIGHTS_DIR` to the path were the weights of the base model are stored. We evaluated three transfer learning strategy, you can control those you want to use in the list `CONFIG`, the value `freeze_all` will freeze all weights learned from Landsat-8 images, the `unfreeze` will keep the weights unfrozen and free to learn, and `freeze_encoder` will freeze the weights of the first half of tto fine-tuning is to define which images are used for training, validation and testing. In this repository there is the script `src/transfer-learning/generate_kfolds_manual_annotation.py` that can be used to perform this division. The first time you run this script it will process all annotations computing the number of fire pixels and the maximum value of the bands used and saved to the file defined in `CSV_WITH_NUMBER_OF_FIRE_PIXELS_OF_EACH_PATCH` constant, if the file already exists it will not be re-computed. You can change the images directory in the `IMAGES_DIR` constant and the annotations directory in the `MASKS_DIR` constant. If you don't want to use five images/folds you can change the value in the `NUM_TOP_FIRE_IMAGES_TO_TRAIN` constant. The proportion of fire-patches reserved to validation can be set in the `VALIDATION_FRACTION` constant, the default value is 20%. The constant named `NON_FIRE_PROPORTION` defined the proportion of patches without fire to be used to fine-tuning the networks, the default value is 1, this means that for each fire-patch one patch without fire will be used. The constants `OUTPUT_PATH` and `OUTPUT_FILE` define the directory and the file of the output. Once you have your script configured you can run:
+The script `scr/transfer-learning/transfer_learning.py` can be used to fine-tune the base networks, you can configure it using parameters or set the configuration in the `src/transfer-learning/config.py`. The `transfer_learning.py` script needs the folds files (generated before) to be set in the constant `SENTINEL_MANUAL_ANNOTATIONS_FOLDS_CSV_PATH` or passed by `--csv-folds-file` argument. It will fine-tune each base model (defined in the constant `PRETRAINED_MASKS` or set by `--base-models` argument), the names that are accepted by this parameters are the list that refers to the (authors) name of the method used generated masks used to train the base model. You need to set the constant `PRETRAINED_WEIGHTS_PATH` to the path were the weights of the base model are stored. 
 
+We evaluated three transfer learning strategy, you can control those you want to use in the constant `TRANSFER_LEARNING_STRATEGY` (or using the parameter `--transfer-learning-strategy`), the value `freeze_all` will freeze all weights learned from Landsat-8 training phase, the `unfreeze` will keep the weights unfrozen and free to learn, and `freeze_encoder` will freeze the weights of the first half of the U-net. 
+
+By default the script will fine-tune the models using the manual annotations, but you can also perform this task using the Sentinel-2 masks generated by thresholding algorithms, you can change the configuration using the `--mask` argument. You 
+
+It is important to keep in mind that, despite the bands from Lansat-8 and Sentinel-2 shares similarities they are not strictly equivalent, also, the spatial resolution is different for each satellite (30m to Lansat-8 and 20m to Sentinel-2), therefore the network needs to learn how to understand this changes. In order adapt the network we added an batch normalization layer immediately after the input for the Sentinel-2 images. If you don't want to use the initial Batch Normalization layer you can remove it from the code, or just change the constant `NORMALIZATION_MODE` (or the argument `--normalization`) to `no-bn`. If you set the value to `None` you need to adjust image scale by yourself to use the pre-trained networks.
+
+
+You can also specify the bands that will be used to perform the transfer learning, you can set the band number that was used in the training phase. For example, setting the constant `BANDS` to `(7,6,5)` it will read the equivalent bands of Sentinel --- the bands 12, 11 and 8A. Keep in mind that the implementation was done for the images available in the dataset, if you are using images from others sources you must adjust the code to read the bands properly.  
+
+This script have some others configurations, like the number of epochs to perform the transfer learning (`EPOCHS` e `--epochs`), `--checkpoint-freq` to define chekpoints, `--gpu` to set the GPU device.
+
+
+This script will fine-tune the networks and evaluated them, each model will be saved the the `OUTPUT_WEIGHTS_TRANSFER_LEARNING_PATH` directory, and the results will be saved as json files in the `OUTPUT_RESULTS_TRANSFER_LEARNING_PATH` directory. You can set the `--identification` argument to define a prefix for the output folder. 
+
+Once you have all your configurations done, you can execute the script using:
 
 ```shell
-python generate_kfolds_manual_annotation.py
+python transfer_learning.py
 ```
-
-The file generated by this script contains the patches to be used for each fold of the experiments, dividing the images into their respective set (train/validation/test), this file will be used to fine-tuning the base model to Sentinel-2 images.
-
-It is important to keep in mind that, despite the bands from Lansat-8 and Sentinel-2 shares similarities they are not strictly equivalent, also, the spatial resolution is different for each satellite (30m to Lansat-8 and 20m to Sentinel-2), therefore the network needs to learn how to understand this changes. In order adapt the network we added an batch normalization layer immediately after the input for the Sentinel-2 images.
-
-The script `src/transfer-learning/architecture_64f.py` can be used to fine-tune the base networks, it needs the folds files (generated before) to be set in the constant `FOLDS_FILE`. It will fine-tune each base model, if you want to use a specific base model you can change the list in the `PRE_TRAINED_MASKS` constant, the names defined in this list refers to the (authors) name of the method used generated masks used to train the base model. You need to set the constant `PRE_TRAINED_WEIGHTS_DIR` to the path were the weights of the base model are stored. We evaluated three transfer learning strategy, you can control those you want to use in the list `CONFIG`, the value `freeze_all` will freeze all weights learned from Landsat-8 images, the `unfreeze` will keep the weights unfrozen and free to learn, and `freeze_encoder` will freeze the weights of the first half of the U-net (Encoder). If you change the path of the dataset with patches and manual annotations you need to change the `IMAGES_DIR` and `MASKS_DIR` to the correct directories. Also, if you are not using the default five folds you need to change the `FOLDS` constant. You can run the script with the command: 
-
-```shell
-python architecture_64f.py
-```
-
-If you don't want to use the initial Batch Normalization layer you can remove it from the code, or just change the constant `NORMALIZATION_MODE` to `no-bn`. If you set the value to `None` you need to adjust image scale properly to use the pre-trained networks.
-
-This script will fine-tune the networks and evaluated them, each model will be saved the the `WEIGHTS_DIR` directory, and the results will be saved as json files in the `OUTPUT_DIR` directory. It will be save the train history, the results over the test set and the fine-tuned model. The final model can be used to make predictions over new images. 
-
-The mentioned script will perform the fine-tuning using the manual annotations, we also provide the script `src/transfer-learning/architecture_64f_method.py` to fine-tune the models using masks generated by thresholding algorithms. It is very similar to the previous script, but you need to set `METHOD` constant to the threholding method that will be used to fine-tune the networks and the `MASKS_DIR` to the path with the 256x256-pixels masks generated by the method.
 
 
 # Downloading the Sentinel-2 fine-tuned models
@@ -122,7 +130,7 @@ We evaluated 100 models with manual annotations: for each base-model (5), we eva
 | Unfrozen          | Voting                             | Manual Annotation     | `resources/transfer_learning/output/weights/5fold_8020_mask1_unet64f_bce_augmentation/Voting_fold_2_nsamples_unfreeze_bce`                 |
 
 
-If you trained the models by yourself the models will be available at same directory as shown in the table above, under the `resources/transfer_learning/output/weights/5fold_8020_mask1_unet64f_bce_augmentation` folder, where `5fold_8020_mask1_unet64f_bce_augmentation` is the name of the model (define in the `MODEL_NAME` constant of the `src/transfer-learning/architecture_64f.py` script).
+If you trained the models by yourself the models will be available at same directory as shown in the table above, under the `resources/transfer_learning/output/weights/5fold_8020_mask1_unet64f_bce_augmentation` folder, where `5fold_8020_mask1_unet64f_bce_augmentation` is the name of the model (define in the `MODEL_NAME` constant of the `src/transfer-learning/config.py` script).
 
 You may notice that the Landsat-8 weights are available as a `h5` file while the fine-tuned models are available as Keras models. This is because the fine-tuned model have an extra layer at the beginning of the model. Using keras you can load the model with `tf.keras.models.load_model`, an example of how to load the models is available in the `src/transfer-learning/best_models_inference.py` script.
 
@@ -134,9 +142,10 @@ python unzip_finetuned_models.py
 
 # Generating active fire masks for Sentinel-2
 
-The fine-tuned models can generate be used to segmentate Sentinel-2 images and generate the active fire masks. Besides the trained networks you can also generate the active fire masks using the tresholding algorithms available in this repository. We provide three methods that can be used in Sentinel-2 images, namely [Kato-Nakamura](), [Liu et al.]() and [Murphy et al.](). Note that, the Murphy et al. method was originally developed for Landsat-8, but use bands with similarities with Sentinel-2. All methods rely on bands SWIR-2 (band-12), SWIR-1 (bands-11) and NIR (band-8A) from Sentinel-2.
+The fine-tuned models can be used to segmentate Sentinel-2 images and generate the active fire masks. Besides the trained networks you can also generate the active fire masks using the tresholding algorithms available in this repository. We provide three methods that can be used in Sentinel-2 images, namely [Kato-Nakamura](), [Liu et al.]() and [Murphy et al.](). All methods rely on bands SWIR-2 (band-12), SWIR-1 (bands-11) and NIR (band-8A) from Sentinel-2.
 
 If you want to generate active fire masks for Landsat-8, you can check the repository built by [Pereira et al.](https://github.com/pereira-gha/activefire/).
+
 
 ## Generating active fire masks with deep learning
 
@@ -151,6 +160,8 @@ python best_models_inference.py
 ```
 
 The predictions will be saved inside the `OUTPUT_DIR` directory.
+
+Alternatively you can use the `src/transfer-learning/predict.py` script to generate the predictions, this script accept the argument `--png` to save the predictions in PNG.
 
 
 ## Generating active fire masks with threshold methods
