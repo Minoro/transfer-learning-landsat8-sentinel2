@@ -40,7 +40,7 @@ BASE_MODEL = ''
 
 OUTPUT_RESULTS_TRANSFER_LEARNING_PATH = '../../resources/sentinel/output/results/transfer_learning'
 
-PRETRAINED_WEIGHTS_PATH = '../../resources/landsat/output'
+PRETRAINED_WEIGHTS_PATH = '../../resources/landsat/weights'
 
 EPOCHS = 20
 

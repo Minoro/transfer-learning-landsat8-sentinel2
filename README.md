@@ -56,13 +56,13 @@ For Landsat-8, the network was trained with 256x256-pixels patches, using the ba
 
 | Satellite | Masks                    | Trained Model Path                                                                                         |
 |-----------|--------------------------|------------------------------------------------------------------------------------------------------------|
-| Landsat-8 | Kumar and Roy (2018)     | `resources/landsat/weights/kumar-roy/unet_64f_2conv_765/model_unet_Kumar-Roy_765_final_weights.h5`         |
-| Landsat-8 | Murphy et al. (2016)     | `resources/landsat/weights/murphy/unet_64f_2conv_765/model_unet_Murphy_765_final_weights.h5`               |
-| Landsat-8 | Schroeder et al. (2016)  | `resources/landsat/weights/schroeder/unet_64f_2conv_765/model_unet_Schroeder_765_final_weights.h5`         |
-| Landsat-8 | Intersection             | `resources/landsat/weights/intersection/unet_64f_2conv_765/model_unet_Intersection_765_final_weights.h5`   |
-| Landsat-8 | Voting                   | `resources/landsat/weights/voting/unet_64f_2conv_765/model_unet_Voting_765_final_weights.h5`               |
+| Landsat-8 | Kumar and Roy (2018)     | `resources/landsat/weights/unet/Kumar-Roy/B7B6B5/model_unet_Kumar-Roy_765_final_weights.h5`         |
+| Landsat-8 | Murphy et al. (2016)     | `resources/landsat/weights/unet/Murphy/B7B6B5/model_unet_Murphy_765_final_weights.h5`               |
+| Landsat-8 | Schroeder et al. (2016)  | `resources/landsat/weights/unet/Schroeder/B7B6B5/model_unet_Schroeder_765_final_weights.h5`         |
+| Landsat-8 | Intersection             | `resources/landsat/weights/unet/Intersection/B7B6B5/model_unet_Intersection_765_final_weights.h5`   |
+| Landsat-8 | Voting                   | `resources/landsat/weights/unet/Voting/B7B6B5/model_unet_Voting_765_final_weights.h5`               |
 
-You can download the Landsat-8 pre-trained models as a zip file and put it in the `resources` folder of this repository, then you can use the script `src/utils/unzip_landsat_weights.py` to extract the weights and put they in the correct folder. Inside the `src/utils` folder you can run: 
+In this repository the Landsat-8 weights are available in the `resources/landsat/weights/unet/landsat_weights.zip` ziped file, you can use the script `src/utils/unzip_landsat_weights.py` to extract the weights and put they in the correct folder. Inside the `src/utils` folder you can run: 
 
 ```shell
 python unzip_landsat_weights.py
@@ -72,9 +72,6 @@ python unzip_landsat_weights.py
 # Fine-tune with Sentinel-2 images
 
 This section will guide you in how to fine-tune the trained models to Sentinel-2, if you don't want to fine-tune by yourself you can download the final models as described in the section [Downloading the Sentinel-2 fine-tuned models](#downloading-the-sentinel-2-fine-tuned-models). 
-
-<!-- The image below show an example of the segmentation produced by the models after the fine-tunning. -->
-<!-- <img src="segmentation_results.png" width="600"> -->
 
 After training the base networks with Landsat-8 images, we performed transfer-learning using similar bands of Sentinel-2. In our experiments we reserved the five images with the most fire patches to form five distinct folds to perform the fine-tuning to Sentinel-2 (the other images was used to evalute the model), each of the five images was used separately as a "fold", repeting the expiriments five times (one for each train image).
 
@@ -105,8 +102,7 @@ It is important to keep in mind that, despite the bands from Lansat-8 and Sentin
 
 You can also specify the bands that will be used to perform the transfer learning, you can set the band number that was used in the training phase. For example, setting the constant `BANDS` to `(7,6,5)` it will read the equivalent bands of Sentinel --- the bands 12, 11 and 8A. Keep in mind that the implementation was done for the images available in the dataset, if you are using images from others sources you must adjust the code to read the bands properly.  
 
-This script have some others configurations, like the number of epochs to perform the transfer learning (`EPOCHS` e `--epochs`), `--checkpoint-freq` to define chekpoints, `--gpu` to set the GPU device.
-
+This script have some others configurations, like the number of epochs to perform the transfer learning (`EPOCHS` e `--epochs`), `--checkpoint-freq` to define the frequence for chekpoints, `--gpu` to set the GPU device.
 
 This script will fine-tune the networks and evaluated them, each model will be saved the the `OUTPUT_WEIGHTS_TRANSFER_LEARNING_PATH` directory, and the results will be saved as json files in the `OUTPUT_RESULTS_TRANSFER_LEARNING_PATH` directory. You can set the `--identification` argument to define a prefix for the output folder. 
 
