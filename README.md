@@ -55,7 +55,7 @@ In this repository we also provide the trained weights from the networks trained
 
 ## Downloading the pre-trained weights for Landsat-8
 
-Besides the datasets and code, you can download the weights for the trained models. They are available on [TODO](). We provide the weights for the U-net trained with Landsat-8 images and the models after the fine-tunning with Sentinel-2 images.
+Besides the datasets and code, you can download the weights for the trained models. They are available on [Google Drive](https://drive.google.com/file/d/1_PtRbm8Dr7FFvDIBSQnhK6dOrmF4Tlud/view?usp=sharing). We provide the weights for the U-net trained with Landsat-8 images and the models after the fine-tunning with Sentinel-2 images.
 
 For Landsat-8, the network was trained with 256x256-pixels patches, using the bands SWIR-2 (band-7), SWIR-1 (band-6) and NIR (band-5) forming a 3-channel image. The masks used to train the model was created by the [Kumar and Roy (2018)](https://doi.org/10.1080/17538947.2017.1391341), [Murphy et al. (2016)](http://dx.doi.org/10.1016/j.rse.2016.02.027),  [Schroeder et al. (2016)](http://dx.doi.org/10.1016/j.rse.2015.08.032), and their combination by intersection and majority-voting. Each of these set of masks was used to train an indepentend base model, therefore, there are 5 base model available trained with Lansat-8 data. The table below shows the directory in this repository for each base model:
 
