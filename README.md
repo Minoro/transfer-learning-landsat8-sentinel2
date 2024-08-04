@@ -113,29 +113,6 @@ python transfer_learning.py
 ```
 
 
-# Downloading the Sentinel-2 fine-tuned models
-
-We provide the models trained after the fine-tune with Sentinel-2 image. While the network trained with the Landsat-8 is provided as weights (.h5), the fine-tuned models are provided as Keras models and can be easly be loaded from the disk.
-
-We evaluated 100 models with manual annotations: for each base-model (5), we evaluated 5-folds using 3 transfer learning strategy, and one with randomly initialized weights. Therefore we have 5 x 5 x (3 + 1) models, but due to size limitations we provide only the best weights of each transfer learning strategy. If you want to use the models with the default configuration of the scripts of this repository you need to put the downloaded models at the directory:
-
-| TL Strategy       | Base Model (Trained with L8 data)  | Fine-Tuning Masks     | Model Path                                                                                                                                 |
-|-------------------|------------------------------------|-----------------------|---------------------------------------------------------------------------------------------------------------------|
-| Frozen            | Intersection                       | Manual Annotation     | `resources/transfer_learning/output/weights/5fold_8020_mask1_unet64f_bce_augmentation/Intersection_fold_3_nsamples_freeze_all_bce`         |
-| Frozen-Encoder    | Intersection                       | Manual Annotation     | `resources/transfer_learning/output/weights/5fold_8020_mask1_unet64f_bce_augmentation/Intersection_fold_4_nsamples_freeze_encoder_bce`     |
-| Unfrozen          | Voting                             | Manual Annotation     | `resources/transfer_learning/output/weights/5fold_8020_mask1_unet64f_bce_augmentation/Voting_fold_2_nsamples_unfreeze_bce`                 |
-
-
-If you trained the models by yourself the models will be available at same directory as shown in the table above, under the `resources/transfer_learning/output/weights/5fold_8020_mask1_unet64f_bce_augmentation` folder, where `5fold_8020_mask1_unet64f_bce_augmentation` is the name of the model (define in the `MODEL_NAME` constant of the `src/transfer-learning/config.py` script).
-
-You may notice that the Landsat-8 weights are available as a `h5` file while the fine-tuned models are available as Keras models. This is because the fine-tuned model have an extra layer at the beginning of the model. Using keras you can load the model with `tf.keras.models.load_model`, an example of how to load the models is available in the `src/transfer-learning/best_models_inference.py` script.
-
-We provided the `src/utils/unzip_finetuned_models.py` script to unzip the downloaded models and put it inside the directories. Inside the `src/utils` directory you can run:
-
-```shell
-python unzip_finetuned_models.py
-```
-
 # Generating active fire masks for Sentinel-2
 
 The fine-tuned models can be used to segmentate Sentinel-2 images and generate the active fire masks. Besides the trained networks you can also generate the active fire masks using the tresholding algorithms available in this repository. We provide three methods that can be used in Sentinel-2 images, namely [Kato-Nakamura](), [Liu et al.]() and [Murphy et al.](). All methods rely on bands SWIR-2 (band-12), SWIR-1 (bands-11) and NIR (band-8A) from Sentinel-2.
@@ -211,6 +188,16 @@ Besides the utils script we also provide a Jupyter Notebook to help you see the 
 
 # Citation
 
-TODO
-
-
+```bibtex
+@ARTICLE{10620606,
+  author={Fusioka, André Minoro and Pereira, Gabriel Henrique de Almeida and Nassu, Bogdan Tomoyuki and Minetto, Rodrigo},
+  journal={IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing}, 
+  title={Active Fire Segmentation: A Transfer Learning Study From Landsat-8 to Sentinel-2}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={1-19},
+  keywords={Earth;Remote sensing;Artificial satellites;Satellites;Image segmentation;Transfer learning;Training;Active fire segmentation;deep learning;landsat-8;sentinel-2;transfer learning},
+  doi={10.1109/JSTARS.2024.3436811}
+}
+```
