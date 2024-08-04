@@ -1,6 +1,11 @@
 
+# Paper
+
+You can read the paper avaliable in the [IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10620606)
+
 
 # Active fire segmentation with deep learning: a transfer learning study from Landsat-8 to Sentinel-2
+
 
 To segment active fire, we explored the bands similarities between Landsat-8 and Sentinel-2 to train a U-net with images of the former and adjust it using a single image to the latter, as depicted in the image below:
 
@@ -188,8 +193,11 @@ Besides the utils script we also provide a Jupyter Notebook to help you see the 
 
 # Citation
 
+You can read the paper avaliable in the [IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10620606)
+
+
 ```bibtex
-@ARTICLE{10620606,
+@ARTICLE{Fusioka2024,
   author={Fusioka, André Minoro and Pereira, Gabriel Henrique de Almeida and Nassu, Bogdan Tomoyuki and Minetto, Rodrigo},
   journal={IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing}, 
   title={Active Fire Segmentation: A Transfer Learning Study From Landsat-8 to Sentinel-2}, 
