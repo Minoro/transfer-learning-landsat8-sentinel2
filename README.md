@@ -117,6 +117,10 @@ Once you have all your configurations done, you can execute the script using:
 python transfer_learning.py
 ```
 
+## Downloading the Sentinel-2 fine-tuned models
+
+If you don't want to fine-tune the base models by yourself you can download the final weights for the best models. Due to space limitations we only provide the best model after the fine-tuning process, considering the performance over the manual annotations. The available model is the one that achieved the best performance across the folds. The model trained with the Intersections of the Landsat-8 masks and fine-tuned with the weights of the first half of the U-net frozen (Frozen Encoder) achieved the best performance, you can download the Keras Model from [Google Drive](https://drive.google.com/file/d/1hb60t7tRe3V_Gfgeyfm1-M7-_7aVhzyz/view?usp=sharing). 
+
 
 # Generating active fire masks for Sentinel-2
 
