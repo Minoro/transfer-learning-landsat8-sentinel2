@@ -11,7 +11,7 @@ To segment active fire, we explored the bands similarities between Landsat-8 and
 
 <img src="abstract.png" width="600">
 
-We use the dataset built by [Pereira et al. (2021)]() to train Convolutional Neural Networks (CNN) to segmentate active fire using Landsat-8 images, then we explored different approachs for Transfer Learning to adapt the networks for Sentinel-2 images. To do that, we explore bands with similar wavelenghts in these satellites. Despite the similarities, the bands are not strictly equivalent, therefore, there are some differences in the information captured by the satellites. To overcome these differents we used a Batch Normalization layer to adjust the Sentinel-2 values.  
+We use the dataset built by [Pereira et al. (2021)](https://www.sciencedirect.com/science/article/abs/pii/S092427162100160X) to train Convolutional Neural Networks (CNN) to segmentate active fire using Landsat-8 images, then we explored different approachs for Transfer Learning to adapt the networks for Sentinel-2 images. To do that, we explore bands with similar wavelenghts in these satellites. Despite the similarities, the bands are not strictly equivalent, therefore, there are some differences in the information captured by the satellites. To overcome these differents we used a Batch Normalization layer to adjust the Sentinel-2 values.  
 
 This repository contains instructions to download the images used in the expiriments and the weights for both the networks trained with Landsat-8 images and the models fine-tunned with Sentinel-2 images.
 
