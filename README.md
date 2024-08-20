@@ -203,12 +203,12 @@ You can read the paper avaliable in the [IEEE Journal of Selected Topics in Appl
 ```bibtex
 @ARTICLE{Fusioka2024,
   author={Fusioka, André Minoro and Pereira, Gabriel Henrique de Almeida and Nassu, Bogdan Tomoyuki and Minetto, Rodrigo},
-  journal={IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing}, 
+  journal={IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing},
   title={Active Fire Segmentation: A Transfer Learning Study From Landsat-8 to Sentinel-2}, 
   year={2024},
-  volume={},
+  volume={17},
   number={},
-  pages={1-19},
+  pages={14093-14108},
   keywords={Earth;Remote sensing;Artificial satellites;Satellites;Image segmentation;Transfer learning;Training;Active fire segmentation;deep learning;landsat-8;sentinel-2;transfer learning},
   doi={10.1109/JSTARS.2024.3436811}
 }
