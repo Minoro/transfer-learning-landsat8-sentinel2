@@ -174,3 +174,8 @@ resources/landsat/masks/**/*.tif
 resources/landsat/masks/voting/*.tif
 resources/landsat/masks/intersection/*.tif
 resources/landsat/masks/patches/*.tif
+
+resources/Sentinel2/**/*.tif
+**/*.tif
+./**/*.tif
+*.keras
