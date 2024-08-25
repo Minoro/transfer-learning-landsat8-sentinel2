@@ -112,7 +112,7 @@ By default the script will fine-tune the models using the manual annotations, bu
 It is important to keep in mind that, despite the bands from Lansat-8 and Sentinel-2 shares similarities they are not strictly equivalent, also, the spatial resolution is different for each satellite (30m to Lansat-8 and 20m to Sentinel-2), therefore the network needs to learn how to understand this changes. In order adapt the network we added an batch normalization layer immediately after the input for the Sentinel-2 images. If you don't want to use the initial Batch Normalization layer you can remove it from the code, or just change the constant `NORMALIZATION_MODE` (or the argument `--normalization`) to `no-bn`. If you set the value to `None` you need to adjust image scale by yourself to use the pre-trained networks.
 
 
-You can also specify the bands that will be used to perform the transfer learning, you can set the band number that was used in the training phase. For example, setting the constant `BANDS` to `(6,5,4)` it will read the equivalent bands of Sentinel --- the bands 12, 11 and 8A. Keep in mind that the implementation was done for the images available in the dataset, if you are using images from others sources you must adjust the code to read the bands properly.  
+You can also specify the bands that will be used to perform the transfer learning, you can set the band number that was used in the training phase. For example, setting the constant `BANDS` to `(7,6,5)` it will read the equivalent bands of Sentinel --- the bands 12, 11 and 8A. Keep in mind that the implementation was done for the images available in the dataset, if you are using images from others sources you must adjust the code to read the bands properly.  
 
 This script have some others configurations, like the number of epochs to perform the transfer learning (`EPOCHS` e `--epochs`), `--checkpoint-freq` to define the frequence for chekpoints, `--gpu` to set the GPU device.
 
@@ -174,7 +174,6 @@ python evaluate_fold_afi_algorithms.py
 Since we use the same test images in the "folds", the thresholding algorithms will have the standard deviation equals to zero in the results. 
 
 # Utils scripts
-
 
 We provide a script to rebuild the annotations from the 256x256-pixels patches. It read the 20m image stack to retrive the meta information about the location of the image, then it will read each the 256x256-pixels patches and reorganise them by the geo-location, generating the final image. You need to set the `STACKS_PATH` constant to the path with the Sentinel-2 images with the 20m bands. The `CROPED_ANNOTATIONS_PATH` constant must be set to the path with the annotations in 256x256 format. The final image will be saved at `OUTPUT_SCENE_ANNOATIONS_PATH`. To use the script you can run:  
 
