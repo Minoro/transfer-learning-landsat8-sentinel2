@@ -1,7 +1,7 @@
 
 # Paper
 
-You can read the paper avaliable in the [IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10620606)
+You can read the paper avaliable in the [IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing](https://ieeexplore.ieee.org/document/10620606)
 
 
 # Active fire segmentation with deep learning: a transfer learning study from Landsat-8 to Sentinel-2
@@ -191,7 +191,7 @@ Besides the utils script we also provide a Jupyter Notebook to help you see the 
 
 # Citation
 
-You can read the paper avaliable in the [IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10620606)
+You can read the paper avaliable in the [IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing](https://ieeexplore.ieee.org/document/10620606)
 
 
 ```bibtex
