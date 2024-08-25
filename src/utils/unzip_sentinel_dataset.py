@@ -2,19 +2,14 @@ import sys
 import os
 import zipfile
 
-UNZIPING_SCENE = True
-
-SENTINEL_ZIPED_PATCHES = '../../resources/dataset_patches.zip'
-SENTINEL_ZIPED_SCENES = '../../resources/dataset_scenes.zip'
-
-OUTPUT_PATH = '../../resources/sentinel/Sentinel2/manual_annotated'
+SENTINEL_ZIPED_PATCHES = '/hd1/andre/JSTARS/transfer-learning-landsat8-sentinel2/manual_annotated_croped_and_scene.zip'
+# SENTINEL_ZIPED_PATCHES = '../../resources/sentinel/sentinel2_manual_annotated_croped_and_scene.zip'
+OUTPUT_PATH = '../../resources/Sentinel2'
 
 
 if __name__ == '__main__':
 
     zip_path = SENTINEL_ZIPED_PATCHES
-    if UNZIPING_SCENE:
-        zip_path = SENTINEL_ZIPED_SCENES
 
     print('Unzip Sentinel-2 dataset...')
 
